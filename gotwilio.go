@@ -25,23 +25,20 @@ type Exception struct {
 }
 
 // Create a new Twilio struct.
-func NewTwilioClient(accountSid, authToken string) *Twilio {
+func NewTwilioClient(accountSid, authToken string, HTTPClient *http.Client) *Twilio {
 	twilioUrl := "https://api.twilio.com/2010-04-01" // Should this be moved into a constant?
-	return &Twilio{accountSid, authToken, twilioUrl, http.DefaultClient}
+	return &Twilio{accountSid, authToken, twilioUrl, HTTPClient}
 }
 
 func (twilio *Twilio) post(formValues url.Values, twilioUrl string) (*http.Response, error) {
-	req, err := http.NewRequest("POST", twilioUrl, strings.NewReader(formValues.Encode()))
+	resp, err := http.NewRequest("POST", twilioUrl, strings.NewReader(formValues.Encode()))
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(twilio.AccountSid, twilio.AuthToken)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp.SetBasicAuth(twilio.AccountSid, twilio.AuthToken)
+	resp.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	client := twilio.HTTPClient
-	if client == nil {
-		client = http.DefaultClient
-	}
 
-	return client.Do(req)
+	return client.Do(resp)
 }
