@@ -26,6 +26,20 @@ type SmsResponse struct {
 	Url         string   `json:"uri"`
 }
 
+type MessageResponse struct {
+	Sid         string   `json:"sid"`
+	NumMedia	string 	 `json:"num_media"`
+	ErrorCode	string	 `json:"error_code"`
+	ErrorMessage string	 `json:"error_message"`
+	To          string   `json:"to"`
+	From        string   `json:"from"`
+	MediaUrl    string   `json:"media_url"`
+	Body        string   `json:"body"`
+	Status      string   `json:"status"`
+}
+
+
+
 // Returns SmsResponse.DateCreated as a time.Time object
 // instead of a string.
 func (sms *SmsResponse) DateCreatedAsTime() (time.Time, error) {
@@ -86,6 +100,26 @@ func (twilio *Twilio) sendMessage(formValues url.Values) (smsResponse *SmsRespon
 	smsResponse = new(SmsResponse)
 	err = json.Unmarshal(responseBody, smsResponse)
 	return smsResponse, exception, err
+}
+
+func (twilio *Twilio) getMessage(msgSid string) (msgResponse *MessageResponse, exception *Exception, err error) {
+	twilioMsgUrl := twilio.BaseUrl + "/Accounts/" + twilio.AccountSid + "/Messages/" + msgSid + ".json"
+	formValues := url.Values{}
+
+	res, err := twilio.get(formValues, twilioMsgUrl)
+	if err != nil {
+		return msgResponse, exception, err
+	}
+	defer res.Body.Close()
+
+	responseBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return msgResponse, exception, err
+	}
+
+	msgResponse = new(MessageResponse)
+	err = json.Unmarshal(responseBody, msgResponse)
+	return msgResponse, exception, err
 }
 
 // Form values initialization
